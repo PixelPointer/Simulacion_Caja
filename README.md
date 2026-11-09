@@ -55,10 +55,13 @@ js/
   module6.js               Módulo 6 · Código fuente
   app.js                   Navegación, progreso, tooltips, glosario, arranque
 assets/vendor/             Chart.js 4.4.1 y Lucide (offline)
-modelo_caja.py             Código citado en el §2.8 del documento
-modelo.py                  Código que reproduce las 89 réplicas
-verificacion.py            Verificaciones del motor
+salida.txt                 Salida cruda del programa del documento (§2: 5 réplicas e inferencia)
+salida2.txt                Salida cruda del §1 (frecuencias y distribuciones acumuladas)
 ```
+
+> El código Python no vive en archivos sueltos del repositorio: los tres bloques
+> (`generador_aleatorio.py`, `modelo_caja.py` y `modelo.py`) están incrustados en `js/data.js` y se
+> muestran con resaltado en el Módulo 6.
 
 ---
 
@@ -68,7 +71,7 @@ verificacion.py            Verificaciones del motor
 |---|--------|--------------|
 | 0 | Presentación | Portada, integrantes, características del modelo, mapa de navegación |
 | 1 | Análisis de los datos | Frecuencias, estadísticos, fórmulas paso a paso, χ² = 10,00, tablas acumuladas, **herramienta interactiva de U**, primeros números aleatorios, comparación de semillas, pruebas de uniformidad |
-| 2 | Simulador animado | Escena evento por evento, KPIs en vivo, bitácora, tabla de clientes, **reconstrucción manual de los 3 primeros clientes** |
+| 2 | Simulador animado | Escena evento por evento con decoración local (luz, estantería, toldo y rótulo), **HUD en vivo** (reloj, barra de avance y estado de la caja), anillo de progreso del servicio, efectos de llegada/salida, KPIs, bitácora, **gráfico de evolución en vivo** (cola, espera media y máxima), tabla de clientes y **reconstrucción manual de los 3 primeros clientes** |
 | 3 | Réplicas e inferencia | Ejecución por lotes con parada automática en **Er ≤ 10 %**, IC 95 %, gráficos de convergencia, verificación contra el PDF, tablas de las 5 réplicas (§2 y §3) e inconsistencias |
 | 4 | Preguntas | 13 preguntas (5 técnicas, 5 de pensamiento crítico, 3 del escenario) con respuesta del documento y complemento |
 | 5 | Conclusiones | Las 7 conclusiones + conclusión general + evaluación de la conveniencia |
@@ -138,4 +141,3 @@ visibles en el Módulo 3:
 | 133 | Salgado Llusco Carlos Alejandro |
 
 **Docente:** Lic. Rosa Flores Morales · **Materia:** Simulación de Sistemas · **Curso:** INF-381
-# Simulacion_Caja

@@ -345,10 +345,15 @@
     }
   }
 
-  /** Texto flotante; si se indica `left` se posiciona, si no usa el CSS. */
+  /** Texto flotante; si se indica `left` se posiciona, si no usa el CSS.
+   *  Se retira el anterior del mismo tipo para que dos eventos seguidos no se
+   *  dibujen encima. */
   function flotar(texto, cls, left) {
     var capa = document.getElementById('stage-fx');
     if (!capa) return;
+    U.qsa('.' + cls, capa).forEach(function (viejo) {
+      if (viejo.parentNode) viejo.parentNode.removeChild(viejo);
+    });
     var n = U.el('span', { class: cls, text: texto });
     if (left !== undefined) n.style.left = left + 'px';
     capa.appendChild(n);
