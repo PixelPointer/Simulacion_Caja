@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Simulación de Sistemas · Segundo Parcial - Escenario 3: caja de supermercado en horario de baja demanda. Simulador por eventos discretos, análisis de datos e inferencia estadística.">
+<title>Escenario 3 · Caja de supermercado en horario de baja demanda | Simulación de Sistemas</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛒</text></svg>">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ========================= BARRA DE PROGRESO DE LECTURA ========================= -->
+<div class="progress-track" aria-hidden="true"><div id="progress-bar" class="progress-bar"></div></div>
+
+<!-- ========================= NAVEGACIÓN ========================= -->
+<header class="navbar" id="navbar">
+  <div class="nav-inner">
+    <a href="#presentacion" class="brand" data-nav>
+      <span class="brand-mark"><i data-lucide="shopping-cart"></i></span>
+      <span class="brand-text">
+        <strong>Escenario 3</strong>
+        <small>Caja de supermercado · Baja demanda</small>
+      </span>
+    </a>
+
+    <nav class="nav-links" id="nav-links" aria-label="Módulos">
+      <!-- Generado por app.js -->
+    </nav>
+
+    <div class="nav-actions">
+      <button class="btn btn-ghost btn-icon" id="btn-glosario" data-tip="Glosario de conceptos técnicos" aria-label="Glosario">
+        <i data-lucide="book-open"></i><span class="btn-label">Glosario</span>
+      </button>
+      <a href="#presentacion" class="btn btn-ghost btn-icon" data-tip="Volver al inicio" data-nav aria-label="Inicio">
+        <i data-lucide="arrow-up"></i>
+      </a>
+      <button class="btn btn-ghost btn-icon nav-toggle" id="btn-menu" aria-label="Menú">
+        <i data-lucide="menu"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ========================================================================== *
+ *  MÓDULO 0 · PRESENTACIÓN DEL PROYECTO                                        *
+ * ========================================================================== -->
+<section class="module" id="presentacion">
+  <div class="hero">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-inner reveal">
+      <div class="hero-eyebrow">
+        <span class="pill"><i data-lucide="university"></i> Universidad Mayor de San Andrés</span>
+        <span class="pill"><i data-lucide="flask-conical"></i> Simulación de Sistemas</span>
+      </div>
+
+      <h1 class="hero-title">Caja de supermercado en<br><span class="grad">horario de baja demanda</span></h1>
+
+      <p class="hero-sub">
+        Segundo Parcial · Escenario 3 — Simulación por eventos discretos de una caja con un único
+        cajero, cola FIFO y 100 clientes por réplica, para evaluar si conviene mantener abierta la
+        caja cuando la demanda es baja.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#datos" class="btn btn-primary" data-nav><i data-lucide="bar-chart-3"></i> Explorar el análisis de datos</a>
+        <a href="#sim" class="btn btn-outline" data-nav><i data-lucide="play"></i> Ir al simulador</a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="hero-stat"><strong>100</strong><span>clientes / réplica</span></div>
+        <div class="hero-stat"><strong>1</strong><span>servidor (FIFO)</span></div>
+        <div class="hero-stat"><strong>89</strong><span>réplicas del documento</span></div>
+        <div class="hero-stat"><strong>9,97 %</strong><span>error relativo</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Ficha académica -->
+    <div class="grid-2 mt-lg reveal">
+      <article class="card">
+        <header class="card-head"><i data-lucide="graduation-cap"></i><h2>Ficha académica</h2></header>
+        <ul class="ficha">
+          <li><span>Universidad</span><strong>Universidad Mayor de San Andrés</strong></li>
+          <li><span>Facultad</span><strong>Ciencias Puras y Naturales</strong></li>
+          <li><span>Carrera</span><strong>Informática</strong></li>
+          <li><span>Materia</span><strong>Simulación de Sistemas</strong></li>
+          <li><span>Evaluación</span><strong>Segundo Parcial · Escenario 3</strong></li>
+          <li><span>Docente</span><strong>Lic. Rosa Flores Morales</strong></li>
+          <li><span>Periodo</span><strong>La Paz - Bolivia · 2026</strong></li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <header class="card-head"><i data-lucide="users"></i><h2>Integrantes</h2></header>
+        <table class="table table-compact">
+          <thead><tr><th>#</th><th>Nombre</th><th>Nº</th><th>Curso</th></tr></thead>
+          <tbody id="tbody-integrantes"></tbody>
+        </table>
+      </article>
+    </div>
+
+    <!-- Problema y objetivo -->
+    <div class="grid-2 mt-lg">
+      <article class="card card-accent reveal">
+        <header class="card-head"><i data-lucide="alert-circle"></i><h2>El problema</h2></header>
+        <p id="contexto-texto" class="lead"></p>
+        <p>
+          El gerente necesita una respuesta respaldada por evidencia: <em>¿una espera promedio muy
+          baja justifica cerrar la caja?</em> Para responderlo se construyó un modelo de cola
+          <span data-tip="First In, First Out: primero en llegar, primero en ser atendido." class="term">FIFO</span>
+          con un solo servidor, se validó la bondad de ajuste de los datos y se estimó el tiempo medio
+          de espera con réplicas suficientes para cumplir un error relativo máximo del 10 %.
+        </p>
+      </article>
+
+      <article class="card card-accent-orange reveal">
+        <header class="card-head"><i data-lucide="target"></i><h2>Objetivo de la simulación</h2></header>
+        <ul class="checklist">
+          <li>Analizar los 50 tiempos entre llegadas y 50 tiempos de servicio observados.</li>
+          <li>Comprobar con <span data-tip="Prueba de bondad de ajuste: compara frecuencias observadas y esperadas." class="term">chi-cuadrado</span> si siguen una uniforme discreta.</li>
+          <li>Generar tiempos con <span data-tip="Convierte un número U(0,1) en una variable aleatoria usando su acumulada." class="term">transformada inversa</span> sobre distribuciones empíricas.</li>
+          <li>Simular 100 clientes por réplica con simulación de <span data-tip="El reloj salta de un evento a otro: llegada y fin de servicio." class="term">eventos discretos</span>.</li>
+          <li>Estimar el tiempo medio de espera con <span data-tip="Rango [X̄ − h; X̄ + h] con 95 % de confianza." class="term">intervalo de confianza</span> del 95 %.</li>
+          <li>Evaluar si conviene mantener la caja abierta en baja demanda.</li>
+        </ul>
+      </article>
+    </div>
+
+    <!-- Características del modelo -->
+    <div class="mt-lg reveal">
+      <h3 class="subtitulo"><i data-lucide="settings-2"></i> Características del modelo</h3>
+      <div class="grid-4 mt-sm" id="caracteristicas"></div>
+    </div>
+
+    <!-- Mapa de la página -->
+    <div class="mt-lg reveal">
+      <h3 class="subtitulo"><i data-lucide="map"></i> Recorrido de la presentación</h3>
+      <div class="grid-3 mt-sm" id="mapa-modulos"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================== *
+ *  MÓDULO 1 · ANÁLISIS DE DATOS Y VARIABLES ALEATORIAS                         *
+ * ========================================================================== -->
+<section class="module" id="datos">
+  <div class="container">
+    <header class="section-head reveal">
+      <span class="section-num">Módulo 1</span>
+      <h2>Análisis de datos y generación de variables aleatorias</h2>
+      <p>
+        Estadística descriptiva de las 50 observaciones por variable, pruebas de bondad de ajuste
+        chi-cuadrado, distribuciones acumuladas y transformada inversa.
+      </p>
+    </header>
+
+    <!-- Por qué empíricas discretas -->
+    <div class="card card-callout reveal">
+      <div class="callout-icon"><i data-lucide="lightbulb"></i></div>
+      <div>
+        <h3>¿Por qué distribuciones empíricas discretas?</h3>
+        <p>
+          Los datos observados sólo toman valores enteros de 1 a 5 minutos con frecuencias
+          concentradas en 3 y 4 minutos (llegadas) y en 2 minutos (servicio). La prueba chi-cuadrado
+          <strong>rechaza</strong> que ambas variables sean uniformes discretas, así que no tiene
+          sentido imponer una distribución teórica: se conservan tal cual las probabilidades
+          observadas (0,10 · 0,20 · 0,30 · 0,30 · 0,10 y 0,20 · 0,40 · 0,30 · 0,10). Así el modelo
+          reproduce exactamente el comportamiento medido en el supermercado.
+        </p>
+        <div class="flujo" id="flujo-empirica"></div>
+      </div>
+    </div>
+
+    <!-- Tablas de frecuencias + estadísticos -->
+    <div class="grid-2 mt-lg">
+      <article class="card reveal" id="card-llegadas">
+        <header class="card-head card-head-blue">
+          <i data-lucide="log-in"></i><h2>A · Tiempos entre llegadas</h2>
+        </header>
+        <div class="tabla-wrap" id="tbl-llegadas"></div>
+        <div class="stat-row" id="stats-llegadas"></div>
+        <div class="chart-box"><canvas id="chart-llegadas"></canvas></div>
+        <div class="formula-card" id="formula-llegadas"></div>
+      </article>
+
+      <article class="card reveal" id="card-servicio">
+        <header class="card-head card-head-orange">
+          <i data-lucide="timer"></i><h2>B · Tiempos de servicio</h2>
+        </header>
+        <div class="tabla-wrap" id="tbl-servicio"></div>
+        <div class="stat-row" id="stats-servicio"></div>
+        <div class="chart-box"><canvas id="chart-servicio"></canvas></div>
+        <div class="formula-card" id="formula-servicio"></div>
+      </article>
+    </div>
+
+    <!-- Pruebas chi-cuadrado -->
+    <div class="mt-lg reveal">
+      <h3 class="subtitulo"><i data-lucide="sigma"></i> Prueba de bondad de ajuste chi-cuadrado
+        <span class="tip" data-tip="χ² = Σ (Oi − Ei)² / Ei, con nivel de significancia α = 0,05.">?</span>
+      </h3>
+      <p class="section-lead">
+        Fórmula: <strong>χ² = Σ (Oi − Ei)² / Ei</strong>, donde O<sub>i</sub> es la frecuencia
+        observada y E<sub>i</sub> la esperada bajo la hipótesis nula (uniforme discreta).
+      </p>
+      <div class="grid-2 mt-sm">
+        <article class="card chi-card" id="chi-llegadas"></article>
+        <article class="card chi-card" id="chi-servicio"></article>
+      </div>
+      <div class="grid-2 mt-sm">
+        <div class="chart-box chart-box-tall"><canvas id="chart-obs-llegadas"></canvas></div>
+        <div class="chart-box chart-box-tall"><canvas id="chart-obs-servicio"></canvas></div>
+      </div>
+      <div class="card card-conclusion mt-sm reveal">
+        <i data-lucide="badge-check"></i>
+        <p>
+          <strong>Conclusión de las pruebas:</strong> χ² = 10,00 &gt; 9,488 (gl = 4) y
+          χ² = 10,00 &gt; 7,815 (gl = 3): en ambos casos se <em>rechaza H<sub>0</sub></em>. Ninguna
+          de las dos variables sigue una distribución uniforme discreta y por eso se adoptan
+          <strong>distribuciones empíricas discretas</strong> con las probabilidades observadas.
+        </p>
+      </div>
+    </div>
+
+    <!-- Distribuciones acumuladas -->
+    <div class="mt-lg reveal">
+      <h3 class="subtitulo"><i data-lucide="layers"></i> Distribuciones acumuladas y transformada inversa</h3>
+      <p class="section-lead">
+        Se acumulan las probabilidades observadas y se toma el primer valor <em>x</em> tal que
+        <strong>U ≤ F(x)</strong> (convención del código del documento).
+      </p>
+      <div class="grid-2 mt-sm">
+        <article class="card">
+          <header class="card-head card-head-blue"><i data-lucide="log-in"></i><h3>Acumulada · Llegadas</h3></header>
+          <div class="tabla-wrap" id="tbl-cdf-llegadas"></div>
+        </article>
+        <article class="card">
+          <header class="card-head card-head-orange"><i data-lucide="timer"></i><h3>Acumulada · Servicio</h3></header>
+          <div class="tabla-wrap" id="tbl-cdf-servicio"></div>
+        </article>
+      </div>
+    </div>
+
+    <!-- Herramienta interactiva U -->
+    <div class="card card-tool mt-lg reveal" id="herramienta-u">
+      <header class="card-head"><i data-lucide="shuffle"></i><h2>Herramienta interactiva · de U a un tiempo</h2></header>
+      <p class="tool-help">
+        Escribe o arrastra un número aleatorio <strong>U ∈ [0, 1]</strong> y observa cómo la
+        transformada inversa lo convierte en un tiempo de llegada o de servicio.
+      </p>
+
+      <div class="tool-grid">
+        <div class="tool-controls">
+          <label class="field">
+            <span>Variable</span>
+            <div class="segmented" id="u-variable">
+              <button class="seg active" data-var="llegada">Tiempo entre llegadas</button>
+              <button class="seg" data-var="servicio">Tiempo de servicio</button>
+            </div>
+          </label>
+
+          <label class="field">
+            <span>Valor de U</span>
+            <input type="range" id="u-range" min="0" max="1" step="0.0001" value="0.5046">
+            <input type="text" inputmode="decimal" id="u-num" value="0,5046">
+          </label>
+
+          <div class="presets">
+            <span class="presets-label">Ejemplos del documento:</span>
+            <div id="u-presets" class="preset-row"></div>
+          </div>
+        </div>
+
+        <div class="tool-result" id="u-result"></div>
+      </div>
+
+      <div class="u-visual" id="u-visual"></div>
+      <div class="u-steps" id="u-steps"></div>
+    </div>
+
+    <!-- Números aleatorios generados -->
+    <div class="grid-2 mt-lg">
+      <article class="card reveal">
+        <header class="card-head"><i data-lucide="dices"></i><h2>Primeros números aleatorios (semilla 101)</h2></header>
+        <p class="card-note">
+          Generados en vivo con el generador congruencial aditivo de la sección 5 del documento:
+          flujo de llegadas con semilla 101 y flujo de servicios con semilla 1101 (101 + 1000).
+        </p>
+        <div class="tabla-wrap" id="tbl-aleatorios"></div>
+      </article>
+
+      <article class="card reveal">
+        <header class="card-head"><i data-lucide="git-compare"></i><h2>Efecto de la semilla aleatoria</h2></header>
+        <p class="card-note">
+          Otra semilla genera otra secuencia, pero las medias se mantienen aproximadamente
+          estables (resultado reportado en el documento y recalculado aquí en vivo con 10 valores).
+        </p>
+        <div class="grid-2 mt-sm" id="seed-compare"></div>
+        <div class="card card-note-box mt-sm">
+          <p id="seed-conclusion"></p>
+        </div>
+      </article>
+    </div>
+
+    <!-- Pruebas de uniformidad -->
+    <div class="card mt-lg reveal" id="panel-uniformidad">
+      <header class="card-head"><i data-lucide="check-check"></i><h2>Pruebas de uniformidad e independencia de la secuencia U</h2></header>
+      <p class="card-note">
+        Las tres pruebas del algoritmo de la sección 5 (media, varianza y corridas) ejecutadas en
+        vivo sobre los números generados. <em>El PDF no incluye esta salida: se muestra como
+        evidencia adicional del mismo algoritmo.</em>
+      </p>
+      <div class="tool-controls tool-controls-inline">
+        <label class="field field-inline">
+          <span>Secuencia</span>
+          <select id="uni-stream">
+            <option value="llegada">Llegadas (semilla 101)</option>
+            <option value="servicio">Servicios (semilla 1101)</option>
+          </select>
+        </label>
+        <label class="field field-inline">
+          <span>Cantidad (n)</span>
+          <select id="uni-n">
+            <option value="10">10 (como el documento)</option>
+            <option value="50">50</option>
+            <option value="100" selected>100</option>
+            <option value="500">500</option>
+          </select>
+        </label>
+        <label class="field field-inline">
+          <span>α</span>
+          <select id="uni-alfa">
+            <option value="0.05" selected>0,05</option>
+            <option value="0.01">0,01</option>
+          </select>
+        </label>
+      </div>
+      <div class="tabla-wrap mt-sm" id="tbl-uniformidad"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================== *
+ *  MÓDULO 2 · SIMULADOR INTERACTIVO                                            *
+ * ========================================================================== -->
+<section class="module module-dark" id="sim">
+  <div class="container">
+    <header class="section-head reveal">
+      <span class="section-num">Módulo 2</span>
+      <h2>Simulador interactivo de la caja del supermercado</h2>
+      <p>
+        Simulación real por eventos discretos: cada evento se procesa con la lógica del modelo,
+        respeta la disciplina FIFO y es reproducible mediante semilla.
+      </p>
+    </header>
+
+    <!-- Controles -->
+    <div class="sim-controls reveal">
+      <div class="sim-controls-group">
+        <button class="btn btn-primary" id="btn-play"><i data-lucide="play"></i><span>Iniciar</span></button>
+        <button class="btn btn-outline" id="btn-step"><i data-lucide="step-forward"></i><span>Siguiente evento</span></button>
+        <button class="btn btn-outline" id="btn-reset"><i data-lucide="rotate-ccw"></i><span>Reiniciar</span></button>
+      </div>
+
+      <div class="sim-controls-group sim-controls-config">
+        <label class="field field-inline">
+          <span>Velocidad</span>
+          <input type="range" id="sim-speed" min="0.5" max="12" step="0.5" value="2">
+          <output id="sim-speed-out">2×</output>
+        </label>
+        <label class="field field-inline">
+          <span>Semilla</span>
+          <input type="number" id="sim-seed" min="1" step="1" value="101">
+        </label>
+        <label class="field field-inline">
+          <span>Clientes</span>
+          <input type="number" id="sim-n" min="10" max="500" step="10" value="100">
+        </label>
+        <button class="btn btn-ghost btn-icon" id="btn-apply" data-tip="Aplicar semilla y reiniciar"><i data-lucide="check"></i></button>
+      </div>
+    </div>
+
+    <!-- Indicadores en vivo -->
+    <div class="kpi-grid kpi-grid-sim reveal">
+      <div class="kpi"><span class="kpi-icon blue"><i data-lucide="clock"></i></span><div><strong id="kpi-reloj">0</strong><span>Reloj (min)</span></div></div>
+      <div class="kpi"><span class="kpi-icon blue"><i data-lucide="log-in"></i></span><div><strong id="kpi-llegaron">0</strong><span>Llegaron</span></div></div>
+      <div class="kpi"><span class="kpi-icon orange"><i data-lucide="users"></i></span><div><strong id="kpi-cola">0</strong><span>En cola</span></div></div>
+      <div class="kpi"><span class="kpi-icon green"><i data-lucide="check-circle-2"></i></span><div><strong id="kpi-atendidos">0</strong><span>Atendidos</span></div></div>
+      <div class="kpi"><span class="kpi-icon purple"><i data-lucide="user-check"></i></span><div><strong id="kpi-cajero">Libre</strong><span>Estado del cajero</span></div></div>
+      <div class="kpi"><span class="kpi-icon blue"><i data-lucide="hourglass"></i></span><div><strong id="kpi-espera-media">0,00</strong><span>Espera media (min)</span></div></div>
+      <div class="kpi"><span class="kpi-icon orange"><i data-lucide="alarm-clock"></i></span><div><strong id="kpi-espera-max">0,00</strong><span>Espera máxima (min)</span></div></div>
+      <div class="kpi"><span class="kpi-icon gray"><i data-lucide="gauge"></i></span><div><strong id="kpi-progreso">0 %</strong><span>Progreso</span></div></div>
+    </div>
+
+    <!-- Escena -->
+    <div class="scene reveal" id="scene">
+      <div class="scene-header">
+        <span class="scene-title"><i data-lucide="store"></i> Caja 1 · horario de baja demanda</span>
+        <span class="scene-legend">
+          <span class="lg lg-wait">En cola</span>
+          <span class="lg lg-serve">Siendo atendido</span>
+          <span class="lg lg-done">Sale del sistema</span>
+        </span>
+      </div>
+
+      <div class="scene-stage" id="scene-stage">
+        <div class="zone zone-entrance"><i data-lucide="door-open"></i><span>Entrada</span></div>
+        <div class="zone zone-queue-label"><span>Cola FIFO</span></div>
+        <div class="zone zone-exit"><i data-lucide="log-out"></i><span>Salida</span></div>
+
+        <div class="counter" id="counter">
+          <div class="cashier" id="cashier">
+            <div class="cashier-avatar"><i data-lucide="user"></i></div>
+            <div class="cashier-badge" id="cashier-badge">Libre</div>
+          </div>
+          <div class="register" id="register">
+            <div class="register-screen" id="register-screen">CAJA 1</div>
+            <div class="register-body"></div>
+          </div>
+          <div class="counter-service" id="counter-service"></div>
+        </div>
+
+        <div class="floor-line"></div>
+        <div class="customers" id="customers"></div>
+      </div>
+
+      <div class="scene-footer">
+        <div class="scene-event" id="scene-event"><i data-lucide="radio"></i><span>Pulse <strong>Iniciar</strong> para procesar el primer evento.</span></div>
+        <div class="scene-client-detail" id="scene-client-detail"></div>
+      </div>
+    </div>
+
+    <!-- Bitácora + reconstrucción manual -->
+    <div class="grid-2 mt-lg">
+      <article class="card card-sim reveal">
+        <header class="card-head"><i data-lucide="list-ordered"></i><h2>Bitácora de eventos</h2>
+          <span class="badge" id="bitacora-count">0 eventos</span>
+        </header>
+        <div class="bitacora" id="bitacora">
+          <p class="empty">Aún no se ha procesado ningún evento.</p>
+        </div>
+      </article>
+
+      <article class="card card-sim reveal" id="card-reconstruccion">
+        <header class="card-head"><i data-lucide="calculator"></i><h2>Reconstrucción manual · primeros 3 clientes</h2></header>
+        <p class="card-note">
+          Reproduce a mano, con los números aleatorios del documento (semilla 101), el cálculo de
+          llegada, inicio, finalización y espera de los tres primeros clientes, y lo compara con lo
+          que produce el simulador.
+        </p>
+        <div class="recon-actions">
+          <button class="btn btn-primary" id="btn-reconstruir"><i data-lucide="calculator"></i> Reconstruir paso a paso</button>
+          <button class="btn btn-outline" id="btn-comparar"><i data-lucide="git-compare"></i> Comparar con la simulación</button>
+        </div>
+        <div id="recon-steps" class="recon-steps"></div>
+        <div id="recon-compare" class="tabla-wrap"></div>
+      </article>
+    </div>
+
+    <!-- Tabla detallada -->
+    <div class="card card-sim mt-lg reveal">
+      <header class="card-head"><i data-lucide="table-2"></i><h2>Tabla detallada de los clientes</h2>
+        <span class="badge" id="tabla-clientes-badge">0 / 100 filas</span>
+      </header>
+      <div class="tabla-wrap tabla-scroll">
+        <table class="table" id="tabla-clientes">
+          <thead>
+            <tr>
+              <th data-sort="id">Cliente</th>
+              <th data-sort="tEntre">T. entre llegadas</th>
+              <th data-sort="llegada">Hora de llegada</th>
+              <th data-sort="tServ">T. de servicio</th>
+              <th data-sort="inicio">Inicio de atención</th>
+              <th data-sort="fin">Finalización</th>
+              <th data-sort="espera">Tiempo de espera</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-clientes">
+            <tr><td colspan="7" class="empty">Inicie la simulación para ver los tiempos de cada cliente.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-footnote">
+        Haz clic en una fila para ver el detalle del cliente. Los clientes se generan conforme se
+        procesan los eventos: verás la tabla completarse en tiempo real.
+      </div>
+    </div>
+
+    <!-- Nota de consistencia -->
+    <div class="card card-warning mt-lg reveal">
+      <i data-lucide="triangle-alert"></i>
+      <div>
+        <h3>Nota sobre los tiempos del documento</h3>
+        <p id="nota-simulador"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================== *
+ *  MÓDULO 3 · RÉPLICAS E INFERENCIA ESTADÍSTICA                                *
+ * ========================================================================== -->
+<section class="module" id="replicas">
+  <div class="container">
+    <header class="section-head reveal">
+      <span class="section-num">Módulo 3</span>
+      <h2>Réplicas e inferencia estadística</h2>
+      <p>
+        Ejecución real del motor de simulación: cada réplica procesa 100 clientes con una semilla
+        distinta y el dashboard recalcula media, desviación estándar, margen de error, intervalo de
+        confianza y error relativo.
+      </p>
+    </header>
+
+    <!-- Controles de réplicas -->
+    <div class="rep-controls card reveal">
+      <div class="rep-controls-row">
+        <label class="field">
+          <span>Número de réplicas <output id="rep-n-val">89</output></span>
+          <input type="range" id="rep-n" min="5" max="300" step="1" value="89">
+        </label>
+
+        <label class="field field-inline">
+          <span>Semilla base</span>
+          <input type="number" id="rep-seed" min="1" step="1" value="101">
+        </label>
+
+        <label class="field field-inline">
+          <span>Paso entre semillas</span>
+          <input type="number" id="rep-step" min="1" step="1" value="101">
+        </label>
+
+        <label class="field field-inline">
+          <span>Error objetivo</span>
+          <select id="rep-er">
+            <option value="0.10" selected>10 %</option>
+            <option value="0.05">5 %</option>
+            <option value="0.20">20 %</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="rep-controls-row rep-buttons">
+        <button class="btn btn-primary" id="btn-run"><i data-lucide="play"></i> Ejecutar réplicas</button>
+        <button class="btn btn-outline" id="btn-auto"><i data-lucide="fast-forward"></i> Auto hasta Er ≤ objetivo</button>
+        <button class="btn btn-ghost" id="btn-stop"><i data-lucide="square"></i> Detener</button>
+        <button class="btn btn-ghost" id="btn-doc"><i data-lucide="file-check"></i> Reproducir resultado del documento</button>
+      </div>
+
+      <div class="progress-inline" id="rep-progress-wrap" hidden>
+        <div class="progress-track"><div id="rep-progress" class="progress-bar"></div></div>
+        <span id="rep-progress-label">0 / 89 réplicas</span>
+      </div>
+    </div>
+
+    <!-- KPIs inferenciales -->
+    <div class="kpi-grid kpi-grid-rep reveal">
+      <div class="kpi"><span class="kpi-icon blue"><i data-lucide="repeat"></i></span><div><strong id="k-replicas">—</strong><span>Réplicas ejecutadas</span></div></div>
+      <div class="kpi"><span class="kpi-icon blue"><i data-lucide="sigma"></i></span><div><strong id="k-media">—</strong><span>Media general (min)</span></div></div>
+      <div class="kpi"><span class="kpi-icon orange"><i data-lucide="move-vertical"></i></span><div><strong id="k-s">—</strong><span>Desviación estándar (min)</span></div></div>
+      <div class="kpi"><span class="kpi-icon orange"><i data-lucide="ruler"></i></span><div><strong id="k-h">—</strong><span>Margen de error h (min)</span></div></div>
+      <div class="kpi kpi-wide"><span class="kpi-icon green"><i data-lucide="between-horizontal-start"></i></span><div><strong id="k-ic">—</strong><span>Intervalo de confianza 95 % (min)</span></div></div>
+      <div class="kpi"><span class="kpi-icon" id="k-er-icon"><i data-lucide="percent"></i></span><div><strong id="k-er">—</strong><span>Error relativo</span></div></div>
+      <div class="kpi"><span class="kpi-icon purple"><i data-lucide="calculator"></i></span><div><strong id="k-nstar">—</strong><span>Réplicas necesarias n*</span></div></div>
+      <div class="kpi"><span class="kpi-icon gray"><i data-lucide="users"></i></span><div><strong id="k-clientes">—</strong><span>Clientes procesados</span></div></div>
+    </div>
+
+    <!-- Verificaciones -->
+    <div class="verify-row reveal" id="verify-row"></div>
+
+    <!-- Gráficos -->
+    <div class="grid-2 mt-lg">
+      <div class="card reveal">
+        <header class="card-head"><i data-lucide="bar-chart-3"></i><h3>Espera media por réplica</h3></header>
+        <div class="chart-box chart-box-tall"><canvas id="chart-rep-medias"></canvas></div>
+      </div>
+      <div class="card reveal">
+        <header class="card-head"><i data-lucide="trending-up"></i><h3>Evolución de la precisión (error relativo)</h3></header>
+        <div class="chart-box chart-box-tall"><canvas id="chart-er"></canvas></div>
+      </div>
+      <div class="card reveal">
+        <header class="card-head"><i data-lucide="between-horizontal-start"></i><h3>Intervalo de confianza 95 % evolutivo</h3></header>
+        <div class="chart-box chart-box-tall"><canvas id="chart-ic"></canvas></div>
+      </div>
+      <div class="card reveal">
+        <header class="card-head"><i data-lucide="activity"></i><h3>Variabilidad: espera máxima por réplica</h3></header>
+        <div class="chart-box chart-box-tall"><canvas id="chart-max"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Resultados individuales + referencia -->
+    <div class="grid-2 mt-lg">
+      <article class="card reveal">
+        <header class="card-head"><i data-lucide="list"></i><h3>Resultados individuales por réplica</h3>
+          <span class="badge" id="rep-table-badge">0 filas</span>
+        </header>
+        <div class="tabla-wrap tabla-scroll tabla-rep">
+          <table class="table">
+            <thead>
+              <tr><th>Réplica</th><th>Semilla</th><th>Clientes</th><th>Espera media</th><th>Espera máx.</th></tr>
+            </thead>
+            <tbody id="tbody-replicas"><tr><td colspan="5" class="empty">Ejecuta las réplicas para ver los resultados.</td></tr></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="card card-reference reveal">
+        <header class="card-head"><i data-lucide="file-text"></i><h3>Resultados de referencia del documento</h3></header>
+        <p class="card-note">Cifras tal como aparecen en el PDF (no se modifican). Compáralas con los valores calculados en vivo.</p>
+        <div class="tabla-wrap">
+          <table class="table table-compact">
+            <tbody>
+              <tr><th>Réplicas</th><td>89</td></tr>
+              <tr><th>Media de espera</th><td>0,5996 min</td></tr>
+              <tr><th>Desviación estándar</th><td>0,2838 min</td></tr>
+              <tr><th>Intervalo de confianza 95 %</th><td>[0,5398; 0,6593] min</td></tr>
+              <tr><th>Error relativo</th><td>9,97 % ≤ 10 % ✓</td></tr>
+              <tr><th>Margen de error (pregunta 4.1.4)</th><td>0,0598 min</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ref-match" id="ref-match"></div>
+        <div class="chart-box chart-box-mini"><canvas id="chart-ref-compare"></canvas></div>
+      </article>
+    </div>
+
+    <!-- Tabla de 5 réplicas del documento -->
+    <div class="card mt-lg reveal">
+      <header class="card-head"><i data-lucide="table"></i><h3>Las 5 réplicas iniciales en el documento (dos versiones)</h3></header>
+      <div class="grid-2 mt-sm">
+        <div>
+          <h4 class="mini-title"><span class="dot dot-orange"></span> §2 · salida del programa (numpy)</h4>
+          <div class="tabla-wrap" id="tbl-5-numpy"></div>
+        </div>
+        <div>
+          <h4 class="mini-title"><span class="dot dot-blue"></span> §3 · tabla de réplicas (generador aditivo)</h4>
+          <div class="tabla-wrap" id="tbl-5-aditivo"></div>
+        </div>
+      </div>
+      <p class="card-note mt-sm">
+        Ambas usan las mismas semillas (101, 202, 303, 404, 505) pero resultados distintos: la
+        primera fue ejecutada con <code>numpy.random.default_rng</code> y la segunda —junto con el
+        resultado final de 89 réplicas— con el generador congruencial aditivo de la sección 5. El
+        motor de esta página usa el generador aditivo, por eso reproduce exactamente la tabla de la
+        derecha y el resultado final.
+      </p>
+    </div>
+
+    <!-- Inconsistencias -->
+    <div class="mt-lg" id="inconsistencias"></div>
+  </div>
+</section>
+
+<!-- ========================================================================== *
+ *  MÓDULO 4 · PREGUNTAS Y ANÁLISIS CRÍTICO                                     *
+ * ========================================================================== -->
+<section class="module module-alt" id="preguntas">
+  <div class="container">
+    <header class="section-head reveal">
+      <span class="section-num">Módulo 4</span>
+      <h2>Preguntas y análisis crítico</h2>
+      <p>
+        Las preguntas del documento organizadas en tres categorías, con la respuesta completa, una
+        explicación complementaria y los datos estadísticos relacionados.
+      </p>
+    </header>
+    <div class="preguntas-toolbar reveal">
+      <button class="btn btn-ghost" id="btn-expand-all"><i data-lucide="chevrons-down"></i> Expandir todo</button>
+      <button class="btn btn-ghost" id="btn-collapse-all"><i data-lucide="chevrons-up"></i> Contraer todo</button>
+    </div>
+    <div id="preguntas-container"></div>
+  </div>
+</section>
+
+<!-- ========================================================================== *
+ *  MÓDULO 5 · CONCLUSIONES FINALES                                             *
+ * ========================================================================== -->
+<section class="module" id="conclusiones">
+  <div class="container">
+    <header class="section-head reveal">
+      <span class="section-num">Módulo 5</span>
+      <h2>Conclusiones finales</h2>
+      <p>Siete conclusiones del trabajo y la conclusión general que enmarca la decisión gerencial.</p>
+    </header>
+    <div id="conclusion-general"></div>
+    <div class="grid-3 mt-lg" id="conclusiones-container"></div>
+    <div class="mt-lg reveal">
+      <h3 class="subtitulo"><i data-lucide="gauge"></i> Evaluación de la conveniencia</h3>
+      <div class="grid-3 mt-sm" id="evaluacion"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================== *
+ *  MÓDULO 6 · CÓDIGO FUENTE                                                    *
+ * ========================================================================== -->
+<section class="module module-alt" id="codigo">
+  <div class="container">
+    <header class="section-head reveal">
+      <span class="section-num">Módulo 6</span>
+      <h2>Código fuente</h2>
+      <p>
+        El código Python del documento con resaltado de sintaxis, secciones organizadas y botón de
+        copia, más la explicación del funcionamiento de cada algoritmo.
+      </p>
+    </header>
+    <div id="codigo-container"></div>
+  </div>
+</section>
+
+</main>
+
+<!-- ========================================================================== *
+ *  PIE DE PÁGINA                                                              *
+ * ========================================================================== -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div>
+      <span class="brand-mark"><i data-lucide="shopping-cart"></i></span>
+      <div>
+        <strong>Escenario 3 · Caja de supermercado en horario de baja demanda</strong>
+        <p>Simulación de Sistemas · Universidad Mayor de San Andrés · 2026</p>
+      </div>
+    </div>
+    <div class="footer-actions">
+      <a href="#presentacion" class="btn btn-outline" data-nav><i data-lucide="arrow-up"></i> Volver al inicio</a>
+      <button class="btn btn-ghost" id="btn-glosario-2"><i data-lucide="book-open"></i> Glosario</button>
+    </div>
+  </div>
+</footer>
+
+<!-- Botón flotante volver arriba -->
+<button class="to-top" id="to-top" aria-label="Volver arriba"><i data-lucide="arrow-up"></i></button>
+
+<!-- Modal de glosario -->
+<div class="modal" id="glosario-modal" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="glosario-title">
+    <header class="modal-head">
+      <h2 id="glosario-title"><i data-lucide="book-open"></i> Glosario de conceptos</h2>
+      <button class="btn btn-ghost btn-icon" data-close aria-label="Cerrar"><i data-lucide="x"></i></button>
+    </header>
+    <div class="modal-body" id="glosario-lista"></div>
+  </div>
+</div>
+
+<!-- Tooltips -->
+<div class="tooltip" id="tooltip" hidden></div>
+
+<script src="assets/vendor/chart.umd.min.js"></script>
+<script src="assets/vendor/lucide.min.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/rng.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/module1.js"></script>
+<script src="js/module2.js"></script>
+<script src="js/module3.js"></script>
+<script src="js/module4.js"></script>
+<script src="js/module5.js"></script>
+<script src="js/module6.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

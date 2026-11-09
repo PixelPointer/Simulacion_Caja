@@ -1,0 +1,346 @@
+                        Universidad Mayor de San Andrés
+                    Facultad de Ciencias Puras y Naturales
+                                  Carrera de Informática
+
+
+
+
+                           Segundo Parcial - Escenario 3
+Integrantes:
+       Bautista Villcacuti Cristian William​ ​          ​   Nº 10​ ​   INF-381
+       Llujtaparo Machaca Tania​     ​       ​          ​   Nº
+       Mamani Chavez Rafael Alejandro​       ​          ​   Nº 92
+       Mamani Dussan​         ​      ​       ​          ​   Nº
+       Salgado Llusco Carlos Alejandro​      ​          ​   Nº 133
+
+Docente: Lic. Rosa Flores Morales
+Materia: Simulación de Sistemas
+
+
+                                         La Paz - Bolivia
+                                                 2026
+Escenario 3. Caja de supermercado en horario de baja demanda
+
+Contexto: Una caja atiende a clientes que realizan compras pequeñas. El gerente considera que
+mantener la caja abierta durante las horas de baja demanda podría ser innecesario.
+
+Disciplina: FIFO Servidores: 1
+
+A. Tiempos entre llegadas ​   ​        ​       ​      B. Tiempos de servicio
+
+ Tiempo (min)         Frecuencia                          Tiempo (min)      Frecuencia
+
+ 1                    5                                   1                 10
+
+ 2                    10                                  2                 20
+
+ 3                    15                                  3                 15
+
+ 4                    15                                  4                 5
+
+ 5                    5                                   Total             50
+
+ Total                50
+
+
+1. Análisis de datos, pruebas de ajuste y generación de variables aleatorias
+
+
+
+
+1.3. Generación de variables aleatorias
+
+Construcción de las distribuciones acumuladas:
+
+A. Distribución acumulada de los tiempos entre llegadas
+
+
+         Tiempo       Frecuencia           Probabilidad           Probabilidad acumulada
+
+                  1                5                 0.10                                0.10
+
+                  2               10                 0.20                                0.30
+
+                  3               15                 0.30                                0.60
+                4             15                  0.30                                  0.90
+
+                5               5                 0.10                                  1.00
+
+B. Distribución acumulada de los tiempos de servicio
+
+
+       Tiempo        Frecuencia       Probabilidad           Probabilidad acumulada
+
+                1              10                  0.20                                 0.20
+
+                2              20                  0.40                                 0.60
+
+                3              15                  0.30                                 0.90
+
+                4                 5                0.10                                 1.00
+
+Aplicación de la transformada inversa:
+
+A. Tiempos entre llegadas
+
+
+                    Intervalo de U                        Tiempo generado
+
+                               0 ≤ U < 0.10                                  1 minuto
+
+                            0.10 ≤ U < 0.30                                 2 minutos
+
+                            0.30 ≤ U < 0.60                                 3 minutos
+
+                            0.60 ≤ U < 0.90                                 4 minutos
+
+                            0.90 ≤ U < 1.00                                 5 minutos
+
+B. Tiempos de servicio
+
+
+                    Intervalo de U                        Tiempo generado
+
+                               0 ≤ U < 0.20                                 1 minuto
+
+                            0.20 ≤ U < 0.60                                 2 minutos
+
+                            0.60 ≤ U < 0.90                                 3 minutos
+
+                            0.90 ≤ U < 1.00                                 4 minutos
+Generación de números aleatorios uniformes entre 0 y 1:
+
+El algoritmo para generar números aleatorios, verificar uniformidad e independencia se encuentra
+en la parte final del documento, el algoritmo que se utilizó fue el de generador congruencial
+aditivo. Para inicializar el generador se utiliza una semilla (en este caso se usó la semilla 101)
+para generar 10 números aleatorios de tiempos entre llegadas y 10 de tiempos de servicio.
+
+Se obtuvieron los primeros cinco números aleatorios y se aplicó la transformada inversa para
+obtener los tiempos correspondientes.
+
+
+  N.º         U llegada       Tiempo entre llegadas           U servicio      Tiempo de servicio
+
+    1            0.5046                              3            0.7127                             3
+
+    2            0.6328                              4            0.5385                             2
+
+    3            0.0757                              1            0.0006                             1
+
+    4            0.5205                              3            0.7961                             3
+
+    5            0.1587                              2            0.4502                             2
+
+Para reconstruir manualmente para 3 clientes consecutivos se utilizan los datos de la anterior
+tabla, Los tiempos entre llegadas obtenidos fueron de 3, 4 y 1 minuto, mientras que los tiempos
+de servicio fueron de 3, 2 y 1 minuto, respectivamente.
+
+Cálculo del primer cliente. El primer cliente llega en el minuto 3. Como el servidor está libre,
+comienza su atención inmediatamente y finaliza en el minuto 6. Su tiempo de espera es de 0
+minutos.
+
+Cálculo del segundo cliente. El segundo cliente llega en el minuto 7, cuatro minutos después del
+primero. Como el servidor terminó su atención anterior en el minuto 6, comienza a ser atendido
+en el minuto 7 y finaliza en el minuto 9. Su tiempo de espera es de 0 minutos.
+
+Cálculo del tercer cliente. El tercer cliente llega en el minuto 8. Sin embargo, el servidor se
+encuentra ocupado atendiendo al segundo cliente hasta el minuto 9. Por esta razón, comienza su
+atención en el minuto 9 y finaliza en el minuto 10, presentando un tiempo de espera de 1 minuto.
+Resumen de la reconstrucción
+
+
+ Cliente Hora de llegada        Inicio de servicio       Finalización        Tiempo de espera
+
+       1                   3                      3                  6                         0
+
+       2                   7                      7                  9                         0
+
+       3                   8                      9                 10                         1
+
+Efectos de utilizar diferentes semillas aleatorias:
+
+Al utilizar una semilla diferente se obtienen nuevas secuencias y, consecuentemente, pueden
+generarse distintos tiempos entre llegadas y tiempos de servicio.
+
+Los resultados que permanecen aproximadamente estables al utilizar diferentes semillas
+aleatorias son las medias de los tiempos entre llegadas y de los tiempos de servicio. Esto se puede
+comprobar mediante la comparación de dos ejecuciones con semillas distintas. En la primera
+ejecución, utilizando la semilla 101, se obtuvo una media de tiempo entre llegadas de 2.8 y una
+media de tiempo de servicio de 2.4. Por otro lado, en la segunda ejecución, con la semilla 573, se
+obtuvo una media de tiempo entre llegadas de 2.5 y una media de tiempo de servicio de 2.1.
+
+Al comparar ambos resultados, se observa que los valores de las medias son relativamente
+cercanos, sin presentar diferencias significativas. Esto indica que, aunque la semilla aleatoria
+modifica los valores individuales generados en cada simulación, las medias tienden a mantenerse
+aproximadamente estables.
+
+
+
+
+2. Algoritmo/configuración del modelo en Promodel
+
+
+
+
+3. Tabla con resultados de las réplicas
+4. Conclusiones y respuestas críticas
+
+Preguntas técnicas de verificación:
+
+1. Presenten los primeros cinco números aleatorios utilizados y muestren cómo transformaron al
+menos dos de ellos en tiempos entre llegadas y tiempos de servicio.
+
+2. Seleccionen tres clientes consecutivos y reconstruyan manualmente su hora de llegada, inicio
+de servicio, finalización y tiempo de espera.
+
+3. ¿Qué resultados cambian al utilizar otra semilla aleatoria y cuáles deberían permanecer
+aproximadamente estables?
+
+4. Expliquen cómo obtuvieron el intervalo de confianza y qué significa para el tiempo medio de
+espera.
+
+5. Si duplicaran el número de replicas, ¿Qué esperan que suceda con la amplitud del intervalo de
+confianza?
+
+
+
+
+Preguntas de pensamiento crítico:
+
+1. Si el modelo produce una cola creciente, ¿Cómo distinguirían entre un error de programación y
+una demanda superior a la capacidad del servidor?
+
+2. ¿Puede un modelo tener un intervalo de confianza muy estrecho y, sin embargo, representar
+mal la realidad?
+
+3. Si una réplica da un resultado favorable y otra desfavorable, ¿Cuál presentarían a la
+gerencia?¿Por qué?
+
+4. ¿Qué cambiarían primero para reducir la espera: el tiempo de servicio, la política de atención o
+el número de servidores?¿Qué evidencia necesitarían?
+
+5. Si la media de espera disminuye, pero aumenta el tiempo máximo de espera, ¿considerarían
+que la modificación fue exitosa?
+Preguntas del escenario:
+
+¿Un tiempo promedio de espera cercano a cero justifica cerrar la caja?
+
+¿Qué costos o beneficios no están representados en el modelo?
+
+¿Cómo distinguirían una mejora real de una diferencia debida al azar?
+
+
+
+
+5. Captura o demostración del modelo en ejecución
+
+Código de algoritmo para generar números aleatorios con python:
+
+import math, bisect
+from scipy.stats import chi2, norm
+
+class CongruencialAditivo:
+    def __init__(self, semilla, j=24, k=55, m=2**31):
+        self.j, self.k, self.m = j, k, m
+        x, self.hist = semilla, []
+        for _ in range(k):
+            x = (1103515245 * x + 12345) % 2**31
+            self.hist.append(x)
+
+    def siguiente(self):
+        x = (self.hist[-self.j] + self.hist[-self.k]) % self.m
+        self.hist.append(x); self.hist.pop(0)
+        return x
+
+    def random(self):
+        return self.siguiente() / self.m
+
+llegadas = {1: 0.10, 2: 0.20, 3: 0.30, 4: 0.30, 5: 0.10}
+servicio = {1: 0.20, 2: 0.40, 3: 0.30, 4: 0.10}
+
+def construir_cdf(dist):
+    valores, acum, s = [], [], 0
+    for v, p in dist.items():
+        s += p
+        valores.append(v); acum.append(round(s, 10))
+    return valores, acum
+
+def inversa(u, valores, acum):
+    return valores[bisect.bisect_right(acum, u)]
+
+cdf_a, cdf_s = construir_cdf(llegadas), construir_cdf(servicio)
+def generar(n, semilla):
+    ga = CongruencialAditivo(semilla)
+    gs = CongruencialAditivo(semilla + 1000)
+    ua = [ga.random() for _ in range(n)]
+    us = [gs.random() for _ in range(n)]
+    ta = [inversa(u, *cdf_a) for u in ua]
+    ts = [inversa(u, *cdf_s) for u in us]
+    return ua, ta, us, ts
+
+def prueba_media(u, alfa=0.05):
+    n = len(u); xbar = sum(u) / n
+    z0 = (xbar - 0.5) * math.sqrt(n) / math.sqrt(1/12)
+    zc = norm.ppf(1 - alfa/2)
+    li = 0.5 - zc / math.sqrt(12 * n)
+    ls = 0.5 + zc / math.sqrt(12 * n)
+    return {"media": xbar, "Z0": z0, "Zcrit": zc, "lim_inf": li, "lim_sup": ls,
+"acepta": li <= xbar <= ls}
+
+def prueba_varianza(u, alfa=0.05):
+    n = len(u); xbar = sum(u) / n
+    s2 = sum((x - xbar)**2 for x in u) / (n - 1)
+    li = chi2.ppf(alfa/2, n - 1) / (12 * (n - 1))
+    ls = chi2.ppf(1 - alfa/2, n - 1) / (12 * (n - 1))
+    return {"varianza": s2, "lim_inf": li, "lim_sup": ls, "acepta": li <= s2 <=
+ls}
+
+def prueba_corridas(u, alfa=0.05):
+    n = len(u)
+    s = [1 if u[i+1] > u[i] else 0 for i in range(n - 1)]
+    c0 = 1 + sum(1 for i in range(1, len(s)) if s[i] != s[i-1])
+    mu = (2*n - 1) / 3
+    var = (16*n - 29) / 90
+    z0 = (c0 - mu) / math.sqrt(var)
+    zc = norm.ppf(1 - alfa/2)
+    return {"C0": c0, "mu_C": mu, "var_C": var, "Z0": z0, "Zcrit": zc, "acepta":
+abs(z0) < zc}
+
+def decision(p):
+    return "No se rechaza" if p["acepta"] else "SE RECHAZA"
+
+def reporte_pruebas(nombre, u, alfa=0.05):
+    pm, pv, pc = prueba_media(u, alfa), prueba_varianza(u, alfa),
+prueba_corridas(u, alfa)
+    print(f"\n___Flujo: {nombre} (n = {len(u)}, alfa = {alfa})___")
+    print(f"{'Prueba':<22}{'Estadístico':<28}{'Criterio de
+aceptación':<30}{'Decisión'}")
+    print("-" * 95)
+    print(f"{'Media':<22}{'media = %.4f' % pm['media']:<28}"
+          f"{'%.4f <= media <= %.4f' % (pm['lim_inf'],
+pm['lim_sup']):<30}{decision(pm)}")
+    print(f"{'Varianza':<22}{'s2 = %.4f' % pv['varianza']:<28}"
+          f"{'%.4f <= s2 <= %.4f' % (pv['lim_inf'],
+pv['lim_sup']):<30}{decision(pv)}")
+    print(f"{'Corridas arriba/abajo':<22}{'C_0 = %d, Z_0 = %.3f' % (pc['C0'],
+pc['Z0']):<28}"
+          f"{'|Z_0| < %.3f' % pc['Zcrit']:<30}{decision(pc)}")
+if __name__ == "__main__":
+    n = 10
+    semilla = 101
+
+   ua, ta, us, ts = generar(n, semilla)
+
+    print(f"SEMILLA: {semilla}   |   n = {n}")
+    print(f"\n___Primeros {n*2} números aleatorios y su transformación___")
+    print(f"{'#':<4}{'U llegada':<12}{'T. entre llegadas':<20}{'U
+servicio':<12}{'T. servicio'}")
+    for i in range(n):
+        print(f"{i+1:<4}{ua[i]:<12.4f}{ta[i]:<20}{us[i]:<12.4f}{ts[i]}")
+
+   print("\n___Medias generadas___")
+   print(f"Entre llegadas: {sum(ta)/n:.2f}")
+   print(f"Servicio:       {sum(ts)/n:.2f}")
+   reporte_pruebas("llegadas", ua)
+   reporte_pruebas("servicio", us)
+
