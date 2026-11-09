@@ -18,6 +18,7 @@
   var velocidad = 1;
   var nodos = {};            // id -> elemento DOM del cliente
   var relojUltimo = 0;
+  var finalizado = false;
   var orden = { clave: 'id', dir: 1 };
   var SVG_CLIENTE =
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" ' +
@@ -50,7 +51,12 @@
       'data-id': cliente.id,
       style: 'left:' + (geometria().w * 0.045) + 'px'
     }, [
-      U.el('div', { class: 'avatar', html: SVG_CLIENTE + '<span class="wait-badge" hidden></span><span class="svc-badge" hidden></span>' }),
+      U.el('div', {
+        class: 'avatar',
+        html: SVG_CLIENTE +
+          '<svg class="svc-ring" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="20"></circle></svg>' +
+          '<span class="wait-badge" hidden></span><span class="svc-badge" hidden></span>'
+      }),
       U.el('div', { class: 'cid', text: '#' + cliente.id })
     ]);
     n.addEventListener('click', function () { mostrarDetalle(cliente.id); });
@@ -69,16 +75,28 @@
 
   function renderEscena() {
     var g = geometria();
-    /* sim.cola contiene objetos cliente (FIFO), se extraen sus ids */
+    /* sim.cola contiene objetos cliente en orden FIFO (el primero de la lista
+       es el siguiente en ser atendido). El frente de la cola se dibuja junto
+       a la caja (derecha) y el fondo, hacia la entrada (izquierda). */
     var cola = sim.cola.map(function (c) { return c.id; });
     var n = cola.length;
     var anchoDisponible = g.finCola - g.inicioCola;
-    var paso = n > 0 ? Math.min(66, anchoDisponible / Math.max(n, 1)) : 66;
+    var pasoMin = 46;                       // separación mínima entre clientes
+    var cap = Math.max(3, Math.floor(anchoDisponible / pasoMin));
+    var visibles = Math.min(n, cap);
+    var paso = visibles > 0 ? Math.min(62, anchoDisponible / visibles) : 62;
+    var ocultos = n - visibles;
 
     cola.forEach(function (id, i) {
       var nodo = nodos[id];
       if (!nodo) return;
-      posicionar(nodo, g.inicioCola + i * paso, 'waiting');
+
+      /* Cola más larga que el espacio disponible: sólo se dibujan los que
+         están junto a la caja y el resto se indica con el contador "+N". */
+      if (i >= visibles) { nodo.style.display = 'none'; return; }
+      nodo.style.display = '';
+
+      posicionar(nodo, Math.round(g.finCola - i * paso), 'waiting');
       var cli = sim.clientes[id - 1];
       var esperaActual = Math.max(0, sim.reloj - cli.llegada);
       var badge = nodo.querySelector('.wait-badge');
@@ -87,11 +105,23 @@
       badge.className = 'wait-badge' + (esperaActual > 0 ? '' : ' zero');
       var svc = nodo.querySelector('.svc-badge');
       svc.hidden = true;
+      quitarAnillo(nodo);
     });
+
+    /* Contador de clientes sin espacio en el dibujo (fondo de la cola) */
+    var mas = document.getElementById('queue-more');
+    if (ocultos > 0) {
+      mas.hidden = false;
+      mas.textContent = '+' + ocultos + ' más al fondo';
+      mas.style.left = Math.round(Math.max(46, g.inicioCola - 26)) + 'px';
+    } else {
+      mas.hidden = true;
+    }
 
     if (sim.servidor !== null) {
       var ns = nodos[sim.servidor];
       if (ns) {
+        ns.style.display = '';
         posicionar(ns, g.atencion - 27, 'serving');
         var cs = sim.clientes[sim.servidor - 1];
         var badgeS = ns.querySelector('.wait-badge');
@@ -99,8 +129,27 @@
         var svcS = ns.querySelector('.svc-badge');
         svcS.hidden = false;
         svcS.textContent = 'restan ' + U.num(Math.max(0, cs.fin ? cs.fin - sim.reloj : cs.tServ), 0) + ' min';
+        pintarAnillo(ns, cs);
       }
     }
+  }
+
+  /** Anillo de progreso SVG: fracción del servicio ya consumida. */
+  function pintarAnillo(nodo, cliente) {
+    var c = nodo.querySelector('.svc-ring circle');
+    if (!c || !cliente) return;
+    var total = cliente.tServ || 1;
+    var hecho = cliente.inicio !== null && cliente.inicio !== undefined
+      ? Math.min(total, Math.max(0, sim.reloj - cliente.inicio))
+      : 0;
+    var p = Math.min(1, Math.max(0, hecho / total));
+    c.style.strokeDasharray = '125.66';
+    c.style.strokeDashoffset = (125.66 * (1 - p)).toFixed(2);
+  }
+
+  function quitarAnillo(nodo) {
+    var c = nodo.querySelector('.svc-ring circle');
+    if (c) { c.style.strokeDashoffset = '125.66'; }
   }
 
   function mostrarDetalle(id) {
@@ -122,7 +171,8 @@
     var nodo = nodos[id];
     if (!nodo) return;
     var g = geometria();
-    nodo.classList.add('leaving');
+    nodo.style.display = '';
+    nodo.className = 'customer leaving';
     nodo.style.left = Math.round(g.salida) + 'px';
     delete nodos[id];
     setTimeout(function () { if (nodo.parentNode) nodo.parentNode.removeChild(nodo); }, 600);
@@ -180,6 +230,31 @@
     } else {
       svc.classList.remove('show');
     }
+
+    /* --- HUD de la escena (reloj, avance y estado de la caja) --- */
+    document.getElementById('hud-reloj').textContent = fmtReloj(sim.reloj);
+    document.getElementById('hud-avance').textContent =
+      U.int(sim.atendidos.length) + ' / ' + U.int(sim.nClientes);
+    var fill = prog.toFixed(1) + '%';
+    document.getElementById('hud-bar-fill').style.width = fill;
+    document.getElementById('scene-progress-fill').style.width = fill;
+    document.getElementById('counter').classList.toggle('busy', ocupado);
+    document.getElementById('register').classList.toggle('busy', ocupado);
+    document.getElementById('evolucion-badge').textContent =
+      U.int(sim.pasos || 0) + ' eventos';
+  }
+
+  /* ================================================================== *
+   * Estado de la escena                                                 *
+   * ================================================================== */
+
+  var ESTADOS = { idle: 'En pausa', run: 'En ejecución', end: 'Concluida' };
+
+  function pintarEstado(cual) {
+    var s = document.getElementById('scene-status');
+    if (!s) return;
+    s.className = 'scene-status is-' + cual;
+    s.textContent = ESTADOS[cual] || ESTADOS.idle;
   }
 
   /* ================================================================== *
@@ -233,6 +308,173 @@
     box.className = 'scene-event ' + (descriptor.tipo === 'LLEGADA' ? 'ev-llegada' : 'ev-fin');
     box.innerHTML = '<i data-lucide="' + icono + '"></i><span>' + descriptor.mensaje + '</span>';
     U.refreshIcons(box);
+    /* reinicia la animación de entrada del mensaje en cada evento */
+    void box.offsetWidth;
+    box.classList.add('ev-pop');
+  }
+
+  /* ================================================================== *
+   * Efectos visuales de los eventos                                     *
+   * ================================================================== */
+
+  function efecto(tipo, texto) {
+    var capa = document.getElementById('stage-fx');
+    if (!capa) return;
+    var g = geometria();
+
+    if (tipo === 'fin') {
+      var destello = U.el('span', { class: 'fx-flash' });
+      capa.appendChild(destello);
+      setTimeout(function () { if (destello.parentNode) destello.parentNode.removeChild(destello); }, 750);
+      flotar('+1 atendido', 'fx-pop');
+    } else if (tipo === 'llegada') {
+      var onda = U.el('span', { class: 'fx-ripple' });
+      capa.appendChild(onda);
+      setTimeout(function () { if (onda.parentNode) onda.parentNode.removeChild(onda); }, 900);
+      if (texto) flotar(texto, 'fx-wait', Math.round(g.w * 0.03));
+    }
+  }
+
+  /** Texto flotante; si no se indica `left`, usa la posición por defecto. */
+  function flotar(texto, cls, left) {
+    var capa = document.getElementById('stage-fx');
+    if (!capa) return;
+    var n = U.el('span', { class: cls, text: texto });
+    if (left === undefined) {
+      var g = geometria();
+      left = Math.round(Math.min(g.inicioCola + 30, g.w * 0.42));
+    }
+    n.style.left = left + 'px';
+    capa.appendChild(n);
+    setTimeout(function () { if (n.parentNode) n.parentNode.removeChild(n); }, 1250);
+  }
+
+  /** Confeti al concluir la réplica. */
+  function celebrar() {
+    var capa = document.getElementById('stage-fx');
+    if (!capa) return;
+    var colores = ['#38bdf8', '#22c55e', '#f97316', '#facc15', '#a78bfa', '#ffffff'];
+    for (var i = 0; i < 20; i++) {
+      (function (i) {
+        var n = U.el('span', { class: 'fx-confetti' });
+        n.style.left = (4 + Math.random() * 92).toFixed(1) + '%';
+        n.style.background = colores[i % colores.length];
+        n.style.animationDuration = (1.5 + Math.random() * 1.3).toFixed(2) + 's';
+        n.style.animationDelay = (Math.random() * 0.6).toFixed(2) + 's';
+        capa.appendChild(n);
+        setTimeout(function () { if (n.parentNode) n.parentNode.removeChild(n); }, 3600);
+      })(i);
+    }
+  }
+
+  function limpiarEfectos() {
+    var capa = document.getElementById('stage-fx');
+    if (capa) capa.innerHTML = '';
+  }
+
+  /* ================================================================== *
+   * Gráfico de evolución en vivo                                        *
+   * ================================================================== */
+
+  var chartVivo = null;
+  var serie = null;
+
+  function iniciarGrafico() {
+    U.destroyChart('chart-sim-live');
+    serie = { labels: [], cola: [], media: [], max: [] };
+    chartVivo = U.chart('chart-sim-live', {
+      data: {
+        labels: [],
+        datasets: [
+          {
+            type: 'bar',
+            label: 'Clientes en cola',
+            data: [],
+            backgroundColor: 'rgba(30,107,255,.45)',
+            borderColor: 'rgba(96,165,250,.95)',
+            borderWidth: 1,
+            borderRadius: 3,
+            yAxisID: 'y',
+            order: 3
+          },
+          {
+            type: 'line',
+            label: 'Espera media acumulada (min)',
+            data: [],
+            borderColor: '#f97316',
+            backgroundColor: 'rgba(249,115,22,.14)',
+            borderWidth: 2.4,
+            pointRadius: 0,
+            tension: .25,
+            fill: true,
+            yAxisID: 'y1',
+            order: 1
+          },
+          {
+            type: 'line',
+            label: 'Espera máxima (min)',
+            data: [],
+            borderColor: '#22c55e',
+            borderWidth: 2,
+            borderDash: [6, 5],
+            pointRadius: 0,
+            tension: .25,
+            yAxisID: 'y1',
+            order: 2
+          }
+        ]
+      },
+      options: {
+        animation: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: function (i) { return 'Evento en t = ' + i[0].label + ' min'; },
+              label: function (c) {
+                var v = U.num(c.parsed.y, 2);
+                return c.datasetIndex === 0
+                  ? ' En cola: ' + U.int(c.parsed.y) + ' clientes'
+                  : ' ' + c.dataset.label + ': ' + v + ' min';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#93a9cd', maxTicksLimit: 12, autoSkip: true },
+            title: { display: true, text: 'reloj de simulación (min)', color: '#7a8aa1' }
+          },
+          y: {
+            beginAtZero: true, position: 'left',
+            grid: { color: 'rgba(255,255,255,.07)' },
+            ticks: { color: '#93a9cd', precision: 0 },
+            title: { display: true, text: 'clientes en cola', color: '#7a8aa1' }
+          },
+          y1: {
+            beginAtZero: true, position: 'right',
+            grid: { drawOnChartArea: false },
+            ticks: { color: '#93a9cd' },
+            title: { display: true, text: 'minutos', color: '#7a8aa1' }
+          }
+        }
+      }
+    });
+  }
+
+  function actualizarGrafico() {
+    if (!chartVivo || !serie) return;
+    serie.labels.push(fmtReloj(sim.reloj));
+    serie.cola.push(sim.cola.length);
+    serie.media.push(sim.esperaMedia());
+    serie.max.push(sim.esperaMax());
+    chartVivo.data.labels = serie.labels;
+    chartVivo.data.datasets[0].data = serie.cola;
+    chartVivo.data.datasets[1].data = serie.media;
+    chartVivo.data.datasets[2].data = serie.max;
+    chartVivo.update('none');
   }
 
   /* ================================================================== *
@@ -317,23 +559,36 @@
     agregarEvento(descriptor);
     mensajeEscena(descriptor);
     renderTabla();
+    actualizarGrafico();
 
-    if (descriptor.tipo === 'FIN') salidaDe(descriptor.cliente.id);
+    if (descriptor.tipo === 'FIN') {
+      salidaDe(descriptor.cliente.id);
+      efecto('fin');
+    } else if (descriptor.tipo === 'LLEGADA') {
+      efecto('llegada', 'Cliente #' + descriptor.cliente.id + ' llega');
+    }
 
     if (sim.listo()) { detener(); finalizar(); return false; }
     return true;
   }
 
   function finalizar() {
+    if (finalizado) return;
+    finalizado = true;
     var box = document.getElementById('scene-event');
     box.className = 'scene-event ev-fin';
     box.innerHTML = '<i data-lucide="party-popper"></i><span><strong>Simulación concluida:</strong> ' +
       sim.nClientes + ' clientes atendidos en ' + fmtReloj(sim.reloj) + ' min · espera media <strong>' +
-      U.num(sim.esperaMedia(), 4) + '</strong> min · espera máxima <strong>' +
+      U.num(sim.esperaMedia(), 4) +
+      '</strong> min · espera máxima <strong>' +
       fmtReloj(sim.esperaMax()) + '</strong> min · verificación FIFO <strong>correcta</strong>.</span>';
+    void box.offsetWidth;
+    box.classList.add('ev-pop');
     U.refreshIcons(box);
+    pintarEstado('end');
+    celebrar();
     document.getElementById('btn-play').classList.remove('running');
-    document.getElementById('btn-play').innerHTML = '<i data-lucide="play"></i><span>Repetir</span>';
+    document.getElementById('btn-play').innerHTML = '<i data-lucide="rotate-ccw"></i><span>Repetir</span>';
     U.refreshIcons(document.getElementById('btn-play'));
   }
 
@@ -347,6 +602,7 @@
     if (sim.listo()) reiniciar();
     corriendo = true;
     pintarBoton();
+    pintarEstado('run');
     programarSiguiente();
   }
 
@@ -365,6 +621,7 @@
     if (timer) clearTimeout(timer);
     timer = null;
     pintarBoton();
+    pintarEstado(finalizado ? 'end' : 'idle');
   }
 
   function detener() { pausar(); }
@@ -386,7 +643,10 @@
     document.getElementById('sim-n').value = n;
     sim = new E.Simulator(semilla, n);
     relojUltimo = 0;
+    finalizado = false;
     limpiarEscena();
+    limpiarEfectos();
+    iniciarGrafico();
     document.getElementById('bitacora').innerHTML =
       '<p class="empty">Semilla ' + semilla + ' cargada. Pulse <strong>Iniciar</strong> para procesar el primer evento.</p>';
     document.getElementById('bitacora-count').textContent = '0 eventos';
@@ -395,6 +655,7 @@
     box.innerHTML = '<i data-lucide="radio"></i><span>Sistema en estado inicial: caja libre, cola vacía, reloj en 0. ' +
       'Semilla <strong>' + semilla + '</strong> · <strong>' + n + '</strong> clientes por réplica.</span>';
     U.refreshIcons(box);
+    pintarEstado('idle');
     actualizarKpis();
     renderTabla();
     pintarBoton();

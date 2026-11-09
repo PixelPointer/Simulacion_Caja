@@ -398,8 +398,12 @@
 
     <!-- Escena -->
     <div class="scene reveal" id="scene">
+      <div class="scene-progress" aria-hidden="true"><i id="scene-progress-fill"></i></div>
       <div class="scene-header">
-        <span class="scene-title"><i data-lucide="store"></i> Caja 1 · horario de baja demanda</span>
+        <span class="scene-title">
+          <i data-lucide="store"></i> Caja 1 · horario de baja demanda
+          <span class="scene-status is-idle" id="scene-status">En pausa</span>
+        </span>
         <span class="scene-legend">
           <span class="lg lg-wait">En cola</span>
           <span class="lg lg-serve">Siendo atendido</span>
@@ -408,9 +412,31 @@
       </div>
 
       <div class="scene-stage" id="scene-stage">
+        <!-- Decoración del local (papel pintado, estantería, toldo, luz) -->
+        <div class="deco" aria-hidden="true">
+          <div class="deco-lights"><span></span><span></span><span></span></div>
+          <div class="deco-sign">Abierto</div>
+          <div class="deco-shelf">
+            <div class="shelf-row"><b></b><b></b><b></b><b></b><b></b></div>
+            <div class="shelf-row"><b></b><b></b><b></b><b></b><b></b></div>
+          </div>
+          <div class="deco-awning"></div>
+          <div class="deco-floor"><div class="queue-rail"></div></div>
+        </div>
+
         <div class="zone zone-entrance"><i data-lucide="door-open"></i><span>Entrada</span></div>
         <div class="zone zone-queue-label"><span>Cola FIFO</span></div>
         <div class="zone zone-exit"><i data-lucide="log-out"></i><span>Salida</span></div>
+
+        <!-- Panel de control en vivo (reloj + avance) -->
+        <div class="hud hud-clock" aria-hidden="true">
+          <span class="hud-label">Reloj de simulación</span>
+          <div class="hud-value"><strong id="hud-reloj">0</strong><em>min</em></div>
+          <div class="hud-bar"><i id="hud-bar-fill"></i></div>
+          <span class="hud-sub"><b id="hud-avance">0 / 100</b> atendidos</span>
+        </div>
+
+        <div class="queue-more" id="queue-more" hidden></div>
 
         <div class="counter" id="counter">
           <div class="cashier" id="cashier">
@@ -419,13 +445,15 @@
           </div>
           <div class="register" id="register">
             <div class="register-screen" id="register-screen">CAJA 1</div>
-            <div class="register-body"></div>
+            <div class="register-body"><span class="scanner"></span></div>
           </div>
           <div class="counter-service" id="counter-service"></div>
+          <div class="counter-glow" aria-hidden="true"></div>
         </div>
 
         <div class="floor-line"></div>
         <div class="customers" id="customers"></div>
+        <div class="stage-fx" id="stage-fx" aria-hidden="true"></div>
       </div>
 
       <div class="scene-footer">
@@ -433,6 +461,25 @@
         <div class="scene-client-detail" id="scene-client-detail"></div>
       </div>
     </div>
+
+    <!-- Evolución en vivo -->
+    <article class="card card-sim mt-lg reveal" id="card-evolucion">
+      <header class="card-head">
+        <i data-lucide="activity"></i><h2>Evolución en vivo</h2>
+        <span class="badge" id="evolucion-badge">0 eventos</span>
+      </header>
+      <div class="evolucion-leyenda">
+        <span class="ev-lg ev-col"><b></b> Clientes en cola</span>
+        <span class="ev-lg ev-med"><b></b> Espera media acumulada (min)</span>
+        <span class="ev-lg ev-max"><b></b> Espera máxima (min)</span>
+      </div>
+      <div class="chart-box chart-box-tall"><canvas id="chart-sim-live"></canvas></div>
+      <div class="table-footnote">
+        Un punto por evento procesado: las <strong>barras</strong> muestran cuántos clientes esperan
+        en ese instante y las <strong>líneas</strong>, cómo evolucionan la espera media y la máxima a
+        medida que se atiende. Se actualiza con la misma semilla que la escena.
+      </div>
+    </article>
 
     <!-- Bitácora + reconstrucción manual -->
     <div class="grid-2 mt-lg">
