@@ -32,16 +32,26 @@
   function stage() { return document.getElementById('scene-stage'); }
 
   function geometria() {
-    var w = stage().clientWidth || 900;
-    /* se mide la caja registradora (ancho fijo) y no el bloque completo de la
-       caja, cuyo ancho cambia con el texto de la insignia "Libre/Atendiendo" */
+    var st = stage();
+    var w = st.clientWidth || 900;
+    /* Se mide la caja registradora (ancho fijo) y no el bloque completo de la
+       caja, cuyo ancho cambia con el texto de la insignia "Libre/Atendiendo".
+       Ojo: offsetLeft de #register estaría referido a .counter (su offsetParent),
+       por eso se mide contra el rectángulo de la escena. */
     var caja = document.getElementById('register') || document.getElementById('counter');
-    var izqCaja = (caja && caja.offsetLeft) ? caja.offsetLeft : w * 0.86;
+    var izqCaja = w * 0.86;
+    if (caja && caja.getBoundingClientRect && st.getBoundingClientRect) {
+      var rs = st.getBoundingClientRect();
+      var rc = caja.getBoundingClientRect();
+      if (rc.width > 0) izqCaja = rc.left - rs.left;
+    }
     var limite = izqCaja - 34;                 // el cliente atendido no invade la caja
     var inicioCola = w * 0.15;
-    var finCola = Math.max(inicioCola + 110, Math.min(w * 0.72, limite - 46));
-    var atencion = Math.min(w * 0.845, limite);
-    var salida = w * 0.955;
+    var atencion = Math.max(60, Math.min(w * 0.845, limite));
+    /* El frente de la cola se reserva un espacio mayor (83 px = 56 px entre
+       centros de avatar) para no solaparse con el cliente atendido. */
+    var finCola = Math.max(inicioCola + 110, atencion - 83);
+    var salida = Math.max(40, w - 58);
     return { w: w, inicioCola: inicioCola, finCola: finCola, atencion: atencion, salida: salida };
   }
 
@@ -331,20 +341,16 @@
       var onda = U.el('span', { class: 'fx-ripple' });
       capa.appendChild(onda);
       setTimeout(function () { if (onda.parentNode) onda.parentNode.removeChild(onda); }, 900);
-      if (texto) flotar(texto, 'fx-wait', Math.round(g.w * 0.03));
+      if (texto) flotar(texto, 'fx-wait', Math.round(g.w * 0.33));
     }
   }
 
-  /** Texto flotante; si no se indica `left`, usa la posición por defecto. */
+  /** Texto flotante; si se indica `left` se posiciona, si no usa el CSS. */
   function flotar(texto, cls, left) {
     var capa = document.getElementById('stage-fx');
     if (!capa) return;
     var n = U.el('span', { class: cls, text: texto });
-    if (left === undefined) {
-      var g = geometria();
-      left = Math.round(Math.min(g.inicioCola + 30, g.w * 0.42));
-    }
-    n.style.left = left + 'px';
+    if (left !== undefined) n.style.left = left + 'px';
     capa.appendChild(n);
     setTimeout(function () { if (n.parentNode) n.parentNode.removeChild(n); }, 1250);
   }
@@ -390,8 +396,8 @@
             type: 'bar',
             label: 'Clientes en cola',
             data: [],
-            backgroundColor: 'rgba(30,107,255,.45)',
-            borderColor: 'rgba(96,165,250,.95)',
+            backgroundColor: 'rgba(56,189,248,.5)',
+            borderColor: 'rgba(125,211,252,.95)',
             borderWidth: 1,
             borderRadius: 3,
             yAxisID: 'y',
@@ -445,19 +451,19 @@
           x: {
             grid: { display: false },
             ticks: { color: '#93a9cd', maxTicksLimit: 12, autoSkip: true },
-            title: { display: true, text: 'reloj de simulación (min)', color: '#7a8aa1' }
+            title: { display: true, text: 'reloj de simulación (min)', color: '#93a9cd' }
           },
           y: {
             beginAtZero: true, position: 'left',
             grid: { color: 'rgba(255,255,255,.07)' },
             ticks: { color: '#93a9cd', precision: 0 },
-            title: { display: true, text: 'clientes en cola', color: '#7a8aa1' }
+            title: { display: true, text: 'clientes en cola', color: '#93a9cd' }
           },
           y1: {
             beginAtZero: true, position: 'right',
             grid: { drawOnChartArea: false },
             ticks: { color: '#93a9cd' },
-            title: { display: true, text: 'minutos', color: '#7a8aa1' }
+            title: { display: true, text: 'minutos', color: '#93a9cd' }
           }
         }
       }

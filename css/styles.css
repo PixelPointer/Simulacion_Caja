@@ -513,12 +513,12 @@ input[type=number]:focus,select:focus{outline:none;border-color:var(--electrico)
   background:repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 26px,transparent 26px 52px);
 }
 .zone{
-  position:absolute;display:flex;flex-direction:column;align-items:center;gap:5px;
+  position:absolute;z-index:3;display:flex;flex-direction:column;align-items:center;gap:5px;
   font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7f9bc4;
 }
 .zone svg{width:19px;height:19px;color:#5b8def}
 .zone-entrance{left:14px;bottom:14px}
-.zone-exit{right:14px;top:14px;align-items:flex-end}
+.zone-exit{right:14px;bottom:14px;align-items:flex-end}
 .zone-queue-label{left:24%;bottom:14px}
 
 .counter{
@@ -638,7 +638,7 @@ input[type=number]:focus,select:focus{outline:none;border-color:var(--electrico)
 
 /* --- decoración del local --- */
 .deco{position:absolute;inset:0;pointer-events:none;z-index:1}
-.deco-lights{position:absolute;top:0;left:30%;right:30%;display:flex;justify-content:space-between}
+.deco-lights{position:absolute;top:0;left:14%;right:58%;display:flex;justify-content:space-between}
 .deco-lights span{position:relative;width:74px;height:66px;animation:lampGlow 6s ease-in-out infinite}
 .deco-lights span::before{
   content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
@@ -666,7 +666,7 @@ input[type=number]:focus,select:focus{outline:none;border-color:var(--electrico)
 @keyframes neon{0%,46%,54%,100%{opacity:1}48%,52%{opacity:.42}}
 
 .deco-shelf{
-  position:absolute;top:86px;left:16px;width:190px;padding:8px 10px;border-radius:9px;
+  position:absolute;top:86px;left:206px;width:188px;padding:8px 10px;border-radius:9px;
   background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.04));
   border:1px solid rgba(255,255,255,.15);box-shadow:0 14px 24px -18px #000;
 }
@@ -778,7 +778,7 @@ input[type=number]:focus,select:focus{outline:none;border-color:var(--electrico)
 }
 @keyframes fxFlash{0%{opacity:0;transform:scale(.5)}30%{opacity:1}100%{opacity:0;transform:scale(1.55)}}
 .fx-pop{
-  position:absolute;right:9%;bottom:138px;font-size:13.5px;font-weight:900;color:#4ade80;
+  position:absolute;right:10%;bottom:252px;font-size:13.5px;font-weight:900;color:#4ade80;
   text-shadow:0 2px 10px rgba(0,0,0,.75);animation:fxPop 1.05s ease-out forwards;
 }
 @keyframes fxPop{0%{opacity:0;transform:translateY(12px) scale(.8)}22%{opacity:1;transform:translateY(0) scale(1.06)}100%{opacity:0;transform:translateY(-38px) scale(1)}}
@@ -788,7 +788,7 @@ input[type=number]:focus,select:focus{outline:none;border-color:var(--electrico)
 }
 @keyframes fxRipple{0%{opacity:.95;transform:scale(.35)}100%{opacity:0;transform:scale(3.6)}}
 .fx-wait{
-  position:absolute;bottom:150px;font-size:12.5px;font-weight:800;color:#ffb066;
+  position:absolute;bottom:164px;font-size:12.5px;font-weight:800;color:#ffb066;
   text-shadow:0 2px 8px rgba(0,0,0,.7);animation:fxPop 1.1s ease-out forwards;
 }
 .fx-confetti{position:absolute;top:-16px;width:8px;height:14px;border-radius:2px;animation:fxFall linear forwards}
@@ -1214,8 +1214,7 @@ pre.code .ln::before{
   .deco-awning{width:150px;height:26px}
   .hud-clock{min-width:152px;padding:8px 12px 9px}
   .hud-value strong{font-size:26px}
-  .fx-pop{bottom:126px;right:6%}
-  .fx-wait{bottom:136px}
+  .fx-pop,.fx-wait{display:none}
   .concl-card.destacado{grid-column:span 1}
   .btn-icon .btn-label{display:none}
 }
@@ -1247,9 +1246,7 @@ pre.code .ln::before{
   .hud-sub{font-size:10px;margin-top:4px}
   .queue-more{bottom:92px;font-size:10px;padding:2px 8px}
   .fx-flash{width:110px;height:110px}
-  .fx-pop{bottom:112px;right:5%;font-size:12px}
   .fx-ripple{bottom:70px}
-  .fx-wait{bottom:120px;font-size:11.5px}
   .cashier-avatar{width:44px;height:44px}
   .cashier-avatar svg{width:22px;height:22px}
   .register-body{width:60px;height:32px}
